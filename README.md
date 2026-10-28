@@ -11,7 +11,8 @@
   <img alt="SDK" src="https://img.shields.io/badge/plugin%20SDK-%E2%89%A5%200.3.23-00d5be">
 </p>
 
-> **上架状态**：索引 PR 已提交，等 CC GUI **1.1.9**（插件 SDK 0.3.23）发版后上架。
+> **上架状态**：市场索引的 [PR #83](https://github.com/zhukunpenglinyutong/ccgui-plugins/pull/83)
+> 已提交（草稿，CI 通过），等 CC GUI **1.1.9**（插件 SDK 0.3.23）发版后再合并。
 > 在那之前可以从**本地目录**或 **Release 三件套**安装。
 
 ![状态栏与弹出面板](./docs/screenshot-1.png)
