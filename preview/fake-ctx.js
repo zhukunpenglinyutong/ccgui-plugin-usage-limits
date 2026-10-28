@@ -153,6 +153,7 @@ export function createFakeCtx(params, host) {
         return { filesScanned: 3460, eventsAdded: 9000, durationMs: 1200, scannedAt: now() };
       },
       async prices() {
+        log("usage.prices");
         await wait(40);
         return { source: "bundled", snapshotDate: "2026-10-20", updatedAt: null, models: 2140 };
       },

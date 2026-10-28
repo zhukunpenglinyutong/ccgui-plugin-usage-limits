@@ -92,6 +92,7 @@ function fakeCtx(over: Partial<{ fail: boolean; limits: ReturnType<typeof provid
         return { filesScanned: 1, eventsAdded: 1, durationMs: 1, scannedAt: 2 };
       },
       async prices() {
+        calls.push("prices");
         return { source: "bundled", snapshotDate: "2026-10-20", updatedAt: null, models: 3 };
       },
       async updatePrices() {
@@ -223,5 +224,98 @@ test("limits service: whole-call failures surface as errors", async () => {
   assert.equal(svc.store.get().error, "offline");
   await assert.rejects(svc.retry("claude"));
   assert.equal(svc.store.get().retrying.claude, false);
+  svc.dispose();
+});
+
+test("limits service: the status-bar chip counts as a visible surface", async () => {
+  const f = fakeCtx();
+  const svc = createLimitsService({ ctx: f.ctx, config: { enabled: ["claude"], visibleMs: 20, background: false } });
+  svc.setVisible("chip", true);
+  await sleep(60);
+  const polls = f.calls.filter((c) => c === "limits:refresh:claude").length;
+  assert.ok(polls >= 2, `chip stays current without a click, got ${polls} refreshes`);
+  svc.setVisible("chip", false);
+  await flush();
+  const before = f.calls.length;
+  await sleep(50);
+  assert.equal(f.calls.length, before, "nothing visible → no polling");
+  svc.dispose();
+});
+
+test("limits service: poke refreshes on activity, floored at a minute", async () => {
+  let t = 1_000_000;
+  const f = fakeCtx();
+  const svc = createLimitsService({ ctx: f.ctx, now: () => t, config: { enabled: ["claude"], visibleMs: null, background: false } });
+  svc.poke();
+  await flush();
+  assert.equal(f.calls.filter((c) => c === "limits:refresh:claude").length, 1, "never refreshed → refresh right away");
+
+  t += 59_900;
+  svc.poke();
+  svc.poke();
+  await flush();
+  assert.equal(f.calls.filter((c) => c === "limits:refresh:claude").length, 1, "inside the floor the poke only queues");
+  await sleep(250);
+  assert.equal(f.calls.filter((c) => c === "limits:refresh:claude").length, 2, "the queued poke lands once the floor passes");
+
+  t += 60_000;
+  svc.poke();
+  await flush();
+  assert.equal(f.calls.filter((c) => c === "limits:refresh:claude").length, 3);
+
+  svc.poke();
+  svc.dispose();
+  t += 120_000;
+  await sleep(30);
+  assert.equal(f.calls.filter((c) => c === "limits:refresh:claude").length, 3, "dispose drops the queued poke");
+});
+
+test("usage service: ping keeps the host scanner awake without asking for a scan", async () => {
+  const f = fakeCtx();
+  const svc = createUsageService({ ctx: f.ctx, chipScope: () => ({ period: "today", excluded: [] }) });
+  const wakes = () => f.calls.filter((c) => c === "prices").length;
+  const hours = () => f.calls.filter((c) => c.startsWith("query:hour")).length;
+  const before = hours();
+
+  await svc.ping();
+  assert.equal(wakes(), 1);
+  assert.equal(hours(), before, "the wake-up must not trigger a host scan");
+
+  const globals = globalThis as { document?: unknown };
+  globals.document = { visibilityState: "hidden" };
+  await svc.ping();
+  assert.equal(wakes(), 1, "a hidden window is not worth waking the scanner for");
+  delete globals.document;
+
+  await svc.ping();
+  assert.equal(wakes(), 2);
+  svc.dispose();
+});
+
+test("usage service: init wakes the host when the window becomes visible again", async () => {
+  const f = fakeCtx();
+  const handlers = new Map<string, () => void>();
+  const globals = globalThis as { document?: unknown };
+  globals.document = {
+    visibilityState: "visible",
+    addEventListener: (type: string, cb: () => void) => handlers.set(type, cb),
+    removeEventListener: (type: string) => handlers.delete(type),
+  };
+  const svc = createUsageService({ ctx: f.ctx, chipScope: () => ({ period: "today", excluded: [] }) });
+  svc.init();
+  await sleep(20);
+  const before = f.calls.filter((c) => c === "prices").length;
+  handlers.get("visibilitychange")?.();
+  await flush();
+  assert.equal(f.calls.filter((c) => c === "prices").length, before + 1);
+  svc.dispose();
+  assert.equal(handlers.has("visibilitychange"), false, "listener removed on dispose");
+  delete globals.document;
+});
+
+test("usage service: a failing ping never rejects", async () => {
+  const f = fakeCtx({ fail: true });
+  const svc = createUsageService({ ctx: f.ctx, chipScope: () => ({ period: "today", excluded: [] }) });
+  await svc.ping();
   svc.dispose();
 });

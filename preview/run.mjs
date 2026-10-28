@@ -26,13 +26,21 @@ const base = `http://127.0.0.1:${server.address().port}/preview/index.html`;
 const browser = await chromium.launch({ executablePath: CHROME });
 await mkdir(SHOTS, { recursive: true });
 
-async function open(query, { width = 1440, height = 940, reduced = false } = {}) {
+async function open(query, { width = 1440, height = 940, reduced = false, fast = false } = {}) {
   const page = await browser.newPage({ viewport: { width, height }, reducedMotion: reduced ? "reduce" : "no-preference" });
   const errors = [];
   page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
   page.on("console", (m) => {
     if (m.type() === "error" && !IGNORED.some((re) => re.test(m.text()))) errors.push(`console: ${m.text().slice(0, 300)}`);
   });
+  if (fast) {
+    // Dev only: the chip's own cadences (2 min usage wake, 5 min limits poll)
+    // are compressed so a few seconds of wall clock stand in for them.
+    await page.addInitScript(() => {
+      const real = window.setInterval;
+      window.setInterval = (fn, ms, ...rest) => real(fn, Math.max(10, Math.round((ms || 0) / 100)), ...rest);
+    });
+  }
   await page.goto(`${base}?${query}`);
   await page.waitForTimeout(900);
   return { page, errors };
@@ -523,6 +531,21 @@ const check = async (name, fn) => {
   await check("reduced motion: brand mark does not animate", async () => {
     const anim = await ctx.page.evaluate(() => getComputedStyle(document.querySelector(".ul-brand__eyes")).animationName);
     assert.equal(anim, "none");
+  });
+  await done(ctx);
+}
+
+{
+  const ctx = await open("tight=1", { fast: true });
+  await check("status-bar chip updates on its own — no click needed", async () => {
+    const polls = () => ctx.page.evaluate(() => window.__calls.filter((c) => c.name === "limits.get" && c.arg?.refresh).length);
+    const wakes = () => ctx.page.evaluate(() => window.__calls.filter((c) => c.name === "usage.prices").length);
+    const refreshed = await polls();
+    const woken = await wakes();
+    await ctx.page.waitForTimeout(4500);
+    assert.ok((await polls()) > refreshed, "limits windows are polled while the tags are on screen");
+    assert.ok((await wakes()) > woken, "the wake-up keeps the host scanner running");
+    assert.equal(await ctx.page.evaluate(() => window.__host.state.tabOpen), false, "without opening the panel");
   });
   await done(ctx);
 }

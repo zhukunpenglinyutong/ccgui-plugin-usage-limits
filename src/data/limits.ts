@@ -1,15 +1,20 @@
 /**
- * Limits service. Network-backed refreshes (`refresh: true`) only run while
- * the popover or the limits page is visible (every N minutes, default 5),
- * or every 15 minutes when the user opted into background checks. Startup
- * and visibility changes read the host's cached result (`refresh: false`).
+ * Limits service. Network-backed refreshes (`refresh: true`) run while a
+ * limits surface is on screen — the popover, the limits page, or the
+ * status-bar tags — every N minutes (default 5), or every 15 minutes when the
+ * user opted into background checks. A turn ending in the app also pokes a
+ * refresh (`poke`, floored at a minute) so the chip follows real usage without
+ * anyone clicking it. Everything else reads the host's cached result.
  */
 import type { UsageCtx, UsageLimitProvider, UsageLimitProviderId } from "../sdk-usage";
 import { mergeProviders } from "../domain/limits.ts";
 import { BACKGROUND_POLL_MS } from "../domain/prefs.ts";
 import { createStore, errorText, type Store } from "./store.ts";
 
-export type Surface = "popover" | "page";
+/** A finished turn must not turn into one vendor request per event. */
+const POKE_MIN_MS = 60_000;
+
+export type Surface = "popover" | "page" | "chip";
 
 export interface LimitsState {
   phase: "idle" | "loading" | "ready" | "error";
@@ -33,6 +38,8 @@ export interface LimitsService {
   fetch(refresh: boolean): Promise<void>;
   retry(id: UsageLimitProviderId): Promise<void>;
   setVisible(surface: Surface, visible: boolean): void;
+  /** Usage just moved (a turn ended): refresh now, at most once a minute. */
+  poke(): void;
   configure(config: LimitsConfig): void;
   dispose(): void;
 }
@@ -46,6 +53,7 @@ export function createLimitsService(opts: { ctx: UsageCtx; now?: () => number; c
   let timer: ReturnType<typeof setInterval> | null = null;
   let timerMs: number | null = null;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let pokeTimer: ReturnType<typeof setTimeout> | null = null;
   let seq = 0;
   let disposed = false;
 
@@ -73,6 +81,11 @@ export function createLimitsService(opts: { ctx: UsageCtx; now?: () => number; c
         refreshedAt: refresh ? now() : s.refreshedAt,
       }));
       scheduleRetry();
+      // Fresh data now: a queued poke would only repeat this call.
+      if (pokeTimer) {
+        clearTimeout(pokeTimer);
+        pokeTimer = null;
+      }
     } catch (error) {
       if (mySeq !== seq) return;
       patch((s) => ({ ...s, phase: s.providers.length ? "ready" : "error", error: errorText(error), fetching: false }));
@@ -94,6 +107,27 @@ export function createLimitsService(opts: { ctx: UsageCtx; now?: () => number; c
       retryTimer = null;
       fetch(true).catch(() => undefined);
     }, Math.max(1000, at - now() + 500));
+  }
+
+  /**
+   * Usage just moved (a turn reported a chunk / finished): the windows worth
+   * showing changed, so refresh instead of waiting for the interval tick. The
+   * floor keeps a long turn from becoming one vendor request per event; the
+   * host would dedupe at 20 s anyway.
+   */
+  function poke(): void {
+    if (disposed || !config.enabled.length || store.get().fetching) return;
+    const { refreshedAt } = store.get();
+    const wait = refreshedAt == null ? 0 : refreshedAt + POKE_MIN_MS - now();
+    if (wait <= 0) {
+      fetch(true).catch(() => undefined);
+      return;
+    }
+    if (pokeTimer) return;
+    pokeTimer = setTimeout(() => {
+      pokeTimer = null;
+      fetch(true).catch(() => undefined);
+    }, wait);
   }
 
   function intervalMs(): number | null {
@@ -149,11 +183,16 @@ export function createLimitsService(opts: { ctx: UsageCtx; now?: () => number; c
       reschedule();
       if (providersChanged) fetch(false).catch(() => undefined);
     },
+    poke,
     dispose() {
       disposed = true;
       seq += 1;
       if (timer) clearInterval(timer);
       if (retryTimer) clearTimeout(retryTimer);
+      if (pokeTimer) {
+        clearTimeout(pokeTimer);
+        pokeTimer = null;
+      }
       timer = null;
       retryTimer = null;
     },

@@ -10,6 +10,10 @@
  *   dropped by a sequence number, never merged.
  * - The last status-bar number is cached in storage so the chip is never
  *   blank on startup.
+ * - `ping()` every 2 min keeps the host's log scanner awake: it walks the
+ *   CLIs' logs only while a plugin keeps calling the usage APIs and stops
+ *   after 10 minutes of silence, so without it the chip froze until the
+ *   panel was opened. It calls `prices()` — the cheapest grant, no scan.
  */
 import type { PluginWorkspaceRow } from "../ccgui-plugin";
 import type {
@@ -68,6 +72,8 @@ export interface UsageService {
   reload(): Promise<void>;
   ensureHours(day: DayKey): void;
   refresh(): Promise<void>;
+  /** Cheap usage call that keeps the host's scanner running; no state patch. */
+  ping(): Promise<void>;
   rescan(): Promise<void>;
   loadSources(): Promise<void>;
   loadPrices(): Promise<void>;
@@ -83,6 +89,8 @@ const DONE_DEBOUNCE_MS = 2000;
 const CHANGE_DEBOUNCE_MS = 300;
 const RUNNING_IDLE_MS = 15_000;
 const DAY_TICK_MS = 60_000;
+/** Host scan cadence is 2 min; asking for usage more often only doubles its work. */
+const WAKE_MS = 120_000;
 
 const slot = <T>(): AsyncSlot<T> => ({ phase: "idle", data: null, error: null });
 
@@ -221,6 +229,25 @@ export function createUsageService(opts: {
     return refreshInFlight;
   }
 
+  /**
+   * Keep the host's log scanner awake. Without a usage call for 10 minutes the
+   * host stops its 2-minute background scan, and without that scan the chip's
+   * numbers only moved when the panel was opened. `prices()` is the cheapest
+   * granted usage call — it refreshes the host's demand clock without asking
+   * for a scan (a `query()` would also trip its 60 s "stale → scan now" path
+   * and roughly double how often the host walks the log directories).
+   * Skipped while the window is hidden: nothing is watching the chip then.
+   */
+  async function wake(): Promise<void> {
+    if (disposed) return;
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    try {
+      await ctx.usage.prices();
+    } catch {
+      // reload/refresh report errors; a missed wake-up is not one.
+    }
+  }
+
   function markRunning(on: boolean): void {
     if (runningTimer) clearTimeout(runningTimer);
     runningTimer = on
@@ -259,6 +286,7 @@ export function createUsageService(opts: {
     store,
     reload,
     refresh,
+    ping: wake,
     updatePrices,
     init() {
       ctx.storage
@@ -297,6 +325,14 @@ export function createUsageService(opts: {
         if (todayKey(now()) !== store.get().today) void reload();
       }, DAY_TICK_MS);
       disposers.push(() => clearInterval(tick));
+      const beat = setInterval(() => void wake(), WAKE_MS);
+      disposers.push(() => clearInterval(beat));
+      // Coming back to the window is the moment the numbers are read again.
+      const onVisible = (): void => void wake();
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", onVisible);
+        disposers.push(() => document.removeEventListener("visibilitychange", onVisible));
+      }
     },
     ensureHours(day) {
       if (!isDayKey(day)) return;

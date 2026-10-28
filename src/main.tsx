@@ -26,6 +26,14 @@ import { StatusChip } from "./ui/status/StatusChip.tsx";
 const TAB_KEY = "usage";
 const SETTINGS_KEY = "settings";
 
+/**
+ * The status-bar tags are a limits surface: while they are on screen the
+ * service keeps polling, which is what stops the chip from freezing until the
+ * popover is clicked. Hidden tags fall back to the popover / limits page.
+ */
+const chipShowsLimits = (p: Prefs): boolean =>
+  enabledProviders(p).length > 0 && (p.chipMode === "limit" || p.chipLimits);
+
 const limitsConfig = (p: Prefs): LimitsConfig => ({
   enabled: enabledProviders(p),
   visibleMs: autoRefreshMs(p.autoRefresh),
@@ -82,6 +90,11 @@ function registerSurfaces(app: App): () => void {
   disposers.push(
     ctx.ui.registerCommand({ key: "refresh", title: () => t("cmd.refresh"), keywords: () => ["usage", "refresh", "刷新"], run: () => void app.usage.refresh().catch(() => undefined) }),
   );
+  // A reported chunk or a finished turn is when quota actually moves: refresh
+  // the windows then (floored at a minute inside the service) instead of
+  // letting the chip wait for the next interval tick.
+  disposers.push(ctx.events.on("usage://updated", () => app.limits.poke()));
+  disposers.push(ctx.events.on("usage://done", () => app.limits.poke()));
 
   // Sidebar badge = highest window % while at an alert threshold. The host
   // evaluates badge() on render; re-registering the same key refreshes it.
@@ -124,6 +137,7 @@ function watchPrefs(app: App): () => void {
     if (limitsConfig(before).enabled.join() !== limitsConfig(next).enabled.join() || before.autoRefresh !== next.autoRefresh || before.alerts.background !== next.alerts.background) {
       app.limits.configure(limitsConfig(next));
     }
+    app.limits.setVisible("chip", chipShowsLimits(next));
     if (!before.priceAuto && next.priceAuto) void app.usage.maybeAutoUpdatePrices(true);
   });
 }
@@ -142,6 +156,9 @@ export default function activate(rawCtx: PluginContext): () => void {
     app.limits.configure(limitsConfig(app.prefs.get()));
     // Host-cached limits (no network refresh) so the alert tag / badge show at startup.
     app.limits.fetch(false).catch(() => undefined);
+    // Registered after the cached read so its (higher-sequence) refresh is the
+    // result that lands; the chip is on screen from launch, so it polls.
+    app.limits.setVisible("chip", chipShowsLimits(app.prefs.get()));
     void app.usage.maybeAutoUpdatePrices(app.prefs.get().priceAuto);
   });
   return () => {

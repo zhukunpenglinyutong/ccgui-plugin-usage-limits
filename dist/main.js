@@ -364,6 +364,7 @@ function errorText(error) {
 }
 
 // src/data/limits.ts
+var POKE_MIN_MS = 6e4;
 function createLimitsService(opts) {
   const { ctx } = opts;
   const now = opts.now ?? (() => Date.now());
@@ -373,6 +374,7 @@ function createLimitsService(opts) {
   let timer = null;
   let timerMs = null;
   let retryTimer = null;
+  let pokeTimer = null;
   let seq = 0;
   let disposed = false;
   const patch = (fn) => {
@@ -398,6 +400,10 @@ function createLimitsService(opts) {
         refreshedAt: refresh ? now() : s.refreshedAt
       }));
       scheduleRetry();
+      if (pokeTimer) {
+        clearTimeout(pokeTimer);
+        pokeTimer = null;
+      }
     } catch (error) {
       if (mySeq !== seq) return;
       patch((s) => ({ ...s, phase: s.providers.length ? "ready" : "error", error: errorText(error), fetching: false }));
@@ -414,6 +420,20 @@ function createLimitsService(opts) {
       retryTimer = null;
       fetch(true).catch(() => void 0);
     }, Math.max(1e3, at - now() + 500));
+  }
+  function poke() {
+    if (disposed || !config.enabled.length || store.get().fetching) return;
+    const { refreshedAt } = store.get();
+    const wait = refreshedAt == null ? 0 : refreshedAt + POKE_MIN_MS - now();
+    if (wait <= 0) {
+      fetch(true).catch(() => void 0);
+      return;
+    }
+    if (pokeTimer) return;
+    pokeTimer = setTimeout(() => {
+      pokeTimer = null;
+      fetch(true).catch(() => void 0);
+    }, wait);
   }
   function intervalMs() {
     if (visible.size > 0) return config.visibleMs;
@@ -465,11 +485,16 @@ function createLimitsService(opts) {
       reschedule();
       if (providersChanged) fetch(false).catch(() => void 0);
     },
+    poke,
     dispose() {
       disposed = true;
       seq += 1;
       if (timer) clearInterval(timer);
       if (retryTimer) clearTimeout(retryTimer);
+      if (pokeTimer) {
+        clearTimeout(pokeTimer);
+        pokeTimer = null;
+      }
       timer = null;
       retryTimer = null;
     }
@@ -740,6 +765,7 @@ var DONE_DEBOUNCE_MS = 2e3;
 var CHANGE_DEBOUNCE_MS = 300;
 var RUNNING_IDLE_MS = 15e3;
 var DAY_TICK_MS = 6e4;
+var WAKE_MS = 12e4;
 var slot = () => ({ phase: "idle", data: null, error: null });
 function initialUsageState(now) {
   return {
@@ -862,6 +888,14 @@ function createUsageService(opts) {
     })();
     return refreshInFlight;
   }
+  async function wake() {
+    if (disposed) return;
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    try {
+      await ctx.usage.prices();
+    } catch {
+    }
+  }
   function markRunning(on) {
     if (runningTimer) clearTimeout(runningTimer);
     runningTimer = on ? setTimeout(() => {
@@ -896,6 +930,7 @@ function createUsageService(opts) {
     store,
     reload,
     refresh,
+    ping: wake,
     updatePrices,
     init() {
       ctx.storage.get(CHIP_CACHE_KEY).then((cache) => {
@@ -931,6 +966,13 @@ function createUsageService(opts) {
         if (todayKey(now()) !== store.get().today) void reload();
       }, DAY_TICK_MS);
       disposers.push(() => clearInterval(tick));
+      const beat = setInterval(() => void wake(), WAKE_MS);
+      disposers.push(() => clearInterval(beat));
+      const onVisible = () => void wake();
+      if (typeof document !== "undefined") {
+        document.addEventListener("visibilitychange", onVisible);
+        disposers.push(() => document.removeEventListener("visibilitychange", onVisible));
+      }
     },
     ensureHours(day) {
       if (!isDayKey(day)) return;
@@ -1456,7 +1498,7 @@ var en = {
   "set.chipLimitsDesc": "Keeps each provider's 5-hour and weekly windows (with its logo) after the numbers; they switch to the warning color at the alert threshold.",
   "set.limits": "Limits",
   "set.autoRefresh": "Auto refresh",
-  "set.autoRefreshDesc": "Only while the popover or the limits page is visible.",
+  "set.autoRefreshDesc": "Refreshes by this interval while the status-bar tags, the popover or the limits page is visible; a finished turn also refreshes once.",
   "set.every": "Every {n} min",
   "set.off": "Off",
   "set.claude": "Claude",
@@ -1466,7 +1508,7 @@ var en = {
   "set.alerts": "Alert near the limit",
   "set.alertsDesc": "Marks the status bar and sidebar at the thresholds; system notifications will follow once the host offers them.",
   "set.background": "Background checks",
-  "set.backgroundDesc": "Keeps checking limits every 15 minutes after the popover closes so the warning tag stays current.",
+  "set.backgroundDesc": "With the status-bar tags hidden, keeps checking every 15 minutes after the popover closes so the warning tag stays current.",
   "set.sources": "Data sources",
   "set.include": "Count {name}",
   "set.excludeNote": "Turning a source off only hides it from this plugin's statistics; the host still reads the folder.",
@@ -1783,7 +1825,7 @@ var zh = {
   "set.chipLimitsDesc": "在用量后面常驻显示每个平台的 5 小时与每周窗口（带平台图标）；达到提醒阈值时变成告警色。",
   "set.limits": "限额",
   "set.autoRefresh": "自动刷新",
-  "set.autoRefreshDesc": "只在面板或限额页可见时刷新。",
+  "set.autoRefreshDesc": "状态栏限额标签、弹层或限额页可见时按此间隔刷新；一轮对话结束时也会立刻补一次。",
   "set.every": "每 {n} 分钟",
   "set.off": "关闭",
   "set.claude": "Claude",
@@ -1793,7 +1835,7 @@ var zh = {
   "set.alerts": "接近上限时提醒",
   "set.alertsDesc": "达到阈值时在状态栏与侧栏标记；系统通知待宿主开放后补上。",
   "set.background": "后台查询",
-  "set.backgroundDesc": "关闭面板后仍每 15 分钟查询一次限额，让告急标记保持最新。",
+  "set.backgroundDesc": "状态栏不显示限额时，关闭面板后仍每 15 分钟查一次，让告急标记保持最新。",
   "set.sources": "数据来源",
   "set.include": "统计 {name}",
   "set.excludeNote": "关闭某个来源只会在本插件的统计里隐藏它，宿主仍会读取该目录。",
@@ -4781,6 +4823,7 @@ ${t("chip.click")}`;
 // src/main.tsx
 var TAB_KEY = "usage";
 var SETTINGS_KEY = "settings";
+var chipShowsLimits = (p2) => enabledProviders(p2).length > 0 && (p2.chipMode === "limit" || p2.chipLimits);
 var limitsConfig = (p2) => ({
   enabled: enabledProviders(p2),
   visibleMs: autoRefreshMs(p2.autoRefresh),
@@ -4829,6 +4872,8 @@ function registerSurfaces(app) {
   disposers.push(
     ctx.ui.registerCommand({ key: "refresh", title: () => t("cmd.refresh"), keywords: () => ["usage", "refresh", "刷新"], run: () => void app.usage.refresh().catch(() => void 0) })
   );
+  disposers.push(ctx.events.on("usage://updated", () => app.limits.poke()));
+  disposers.push(ctx.events.on("usage://done", () => app.limits.poke()));
   let badge = null;
   let navDispose = null;
   const registerNav = () => {
@@ -4867,6 +4912,7 @@ function watchPrefs(app) {
     if (limitsConfig(before).enabled.join() !== limitsConfig(next).enabled.join() || before.autoRefresh !== next.autoRefresh || before.alerts.background !== next.alerts.background) {
       app.limits.configure(limitsConfig(next));
     }
+    app.limits.setVisible("chip", chipShowsLimits(next));
     if (!before.priceAuto && next.priceAuto) void app.usage.maybeAutoUpdatePrices(true);
   });
 }
@@ -4883,6 +4929,7 @@ function activate(rawCtx) {
     if (disposed) return;
     app.limits.configure(limitsConfig(app.prefs.get()));
     app.limits.fetch(false).catch(() => void 0);
+    app.limits.setVisible("chip", chipShowsLimits(app.prefs.get()));
     void app.usage.maybeAutoUpdatePrices(app.prefs.get().priceAuto);
   });
   return () => {
