@@ -1,0 +1,139 @@
+/* ---------------------------------------------------------------------------
+ * usage-limits · base. Only host semantic tokens (plugin-ui contract + chart
+ * tokens), every one with a light fallback; dark mode flips through the
+ * host's tokens, so there are no dark-only branches here.
+ * Warning colors use --color-text-warning-primary (host token outside the
+ * plugin-ui contract) with a fallback — see README "SDK gaps".
+ * ------------------------------------------------------------------------- */
+.ul-root {
+  --ul-fg: var(--color-text-primary, #0a0a0a);
+  --ul-fg-2: var(--color-text-secondary, #737373);
+  --ul-fg-3: var(--color-text-tertiary, #a3a3a3);
+  --ul-bg: var(--color-background-primary-default, #ffffff);
+  --ul-bg-2: var(--color-background-secondary-default, #f5f5f5);
+  --ul-bg-3: var(--color-background-tertiary-default, #ebebeb);
+  --ul-line: var(--color-separator-border, #ebebeb);
+  --ul-line-btn: var(--color-border-button-default, #ebebeb);
+  --ul-line-btn-hover: var(--color-border-button-hover, #d4d4d4);
+  --ul-focus: var(--color-border-focus-ring, #3b82f6);
+  --ul-accent: var(--color-accent-500, #3b82f6);
+  --ul-accent-strong: var(--color-accent-600, #2563eb);
+  --ul-ok: var(--color-notification-success-foreground, #65a30d);
+  --ul-danger: var(--color-text-error-primary, #ef4444);
+  --ul-warn: var(--color-text-warning-primary, #ea580c);
+  --ul-track: var(--color-chart-track, #ebebeb);
+  --ul-warn-bg: color-mix(in srgb, var(--ul-warn) 10%, transparent);
+  --ul-danger-bg: color-mix(in srgb, var(--ul-danger) 10%, transparent);
+  --ul-accent-bg: color-mix(in srgb, var(--ul-accent) 12%, transparent);
+  --ul-hover: color-mix(in srgb, var(--ul-fg) 5%, transparent);
+  --ul-shadow-pop: var(--shadow-dropdown, 0 12px 32px -8px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.06));
+  --ul-shadow-card: var(--shadow-card, 0 1px 1px 0 rgba(0, 0, 0, 0.05));
+  --ul-mono: var(--font-mono, ui-monospace, "SF Mono", Menlo, monospace);
+  color: var(--ul-fg);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, -apple-system, "PingFang SC", sans-serif);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+.ul-root *,
+.ul-root *::before,
+.ul-root *::after {
+  box-sizing: border-box;
+}
+.ul-root :where(h2, h3, p, ol, ul) {
+  margin: 0;
+}
+.ul-root :where(ol, ul) {
+  padding: 0;
+  list-style: none;
+}
+.ul-root :where(button) {
+  font: inherit;
+  color: inherit;
+}
+.ul-root :where(button:not(.pui-btn)) {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+.ul-root :where(button:disabled) {
+  cursor: default;
+}
+.ul-root :where(code) {
+  font-family: var(--ul-mono);
+  font-size: 0.92em;
+}
+.ul-root :focus-visible {
+  outline: 2px solid var(--ul-focus);
+  outline-offset: 2px;
+}
+.ul-mono {
+  font-family: var(--ul-mono);
+  font-size: 0.92em;
+}
+.ul-muted {
+  color: var(--ul-fg-3);
+}
+.ul-error-text {
+  color: var(--ul-danger);
+}
+.ul-warn-text {
+  color: var(--ul-warn);
+}
+.ul-block {
+  display: block;
+  margin-top: 2px;
+}
+.ul-flip {
+  transform: rotate(180deg);
+}
+.ul-hint {
+  font-size: 11.5px;
+  color: var(--ul-fg-3);
+}
+
+/* ---- plugin-ui overrides ------------------------------------------------ */
+.ul-icon-btn.pui-btn {
+  width: 30px;
+  padding: 0;
+  flex: none;
+}
+.ul-icon-btn.pui-btn-sm {
+  width: 24px;
+}
+.ul-icon-btn.is-on {
+  background: var(--ul-bg-3);
+  color: var(--ul-fg);
+}
+.pui-btn.is-on {
+  background: var(--color-background-tertiary-hover, #d4d4d4);
+}
+.ul-linkbtn.pui-btn {
+  gap: 4px;
+  padding: 0 6px;
+  color: var(--ul-accent-strong);
+}
+.ul-linkbtn.pui-btn:hover:not(:disabled) {
+  color: var(--ul-accent-strong);
+  background: var(--ul-accent-bg);
+}
+.ul-tag.pui-badge {
+  height: 17px;
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  vertical-align: 1px;
+}
+.ul-alert-badge.pui-badge {
+  height: 16px;
+  padding: 0 5px;
+  font-family: var(--ul-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+.ul-alert-badge.is-warn {
+  background: var(--ul-warn-bg);
+  color: var(--ul-warn);
+}

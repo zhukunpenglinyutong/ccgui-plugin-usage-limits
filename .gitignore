@@ -1,0 +1,7 @@
+.DS_Store
+node_modules/
+coverage/
+preview/shots/
+preview/.market/
+.env
+*.log

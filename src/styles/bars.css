@@ -1,0 +1,172 @@
+/* usage-limits · limit bars and rows (popover + limits page) */
+/* ---- limit bars (popover + limits page) -------------------------------- */
+.ul-bar {
+  position: relative;
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ul-track);
+}
+.ul-bar__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: inherit;
+  background: var(--ul-accent);
+  transition: width 300ms ease;
+}
+.ul-bar.is-warn .ul-bar__fill {
+  background: var(--ul-warn);
+}
+.ul-bar.is-danger .ul-bar__fill {
+  background: var(--ul-danger);
+}
+.ul-bar--extra .ul-bar__fill {
+  background: var(--color-chart-5, #c27aff);
+}
+.ul-bar__tick {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ul-fg);
+  opacity: 0.55;
+}
+.ul-bar__tick.is-over {
+  opacity: 0.85;
+}
+.ul-bar__tick::before {
+  content: "";
+  position: absolute;
+  inset: -4px -6px;
+}
+.ul-lrow {
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) 124px 132px;
+  align-items: center;
+  gap: 4px 14px;
+  padding: 10px 0;
+}
+.ul-lrow + .ul-lrow {
+  border-top: 1px dashed var(--ul-line);
+}
+.ul-lrow__lbl {
+  min-width: 0;
+  font-size: 13px;
+}
+.ul-lrow__pct {
+  white-space: nowrap;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ul-lrow__pct small {
+  margin-left: 3px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ul-fg-3);
+}
+.ul-lrow__pct.is-warn {
+  color: var(--ul-warn);
+}
+.ul-lrow__pct.is-danger {
+  color: var(--ul-danger);
+}
+.ul-lrow__reset {
+  font-size: 12px;
+  color: var(--ul-fg-3);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ul-lrow__pace {
+  grid-column: 2 / -1;
+  font-size: 11.5px;
+  color: var(--ul-fg-3);
+}
+.ul-lrow__pace.is-over,
+.ul-lrow__pace.is-exhausted {
+  color: var(--ul-warn);
+  font-weight: 500;
+}
+.ul-lrow.is-stale {
+  opacity: 0.5;
+}
+
+/* Hover card on a limit row: provider, every window's pace, tick meaning, age.
+   Fixed-positioned so the popover's own scroll area never clips it. */
+.ul-ltip {
+  position: fixed;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--color-text-primary, #0a0a0a);
+  color: var(--color-background-primary-default, #ffffff);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  pointer-events: none;
+  box-shadow: var(--ul-shadow-pop, 0 8px 24px rgb(0 0 0 / 0.18));
+}
+.ul-ltip.is-above {
+  transform: translateY(-100%);
+}
+.ul-ltip__head {
+  font-weight: 600;
+}
+.ul-ltip__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 4px;
+}
+.ul-ltip__win {
+  flex: none;
+  font-weight: 600;
+}
+.ul-ltip__reset {
+  opacity: 0.7;
+}
+.ul-ltip__sep {
+  height: 1px;
+  margin: 3px 0;
+  background: currentColor;
+  opacity: 0.22;
+}
+.ul-ltip__note {
+  opacity: 0.85;
+}
+.ul-ltip__foot {
+  font-size: 11px;
+  opacity: 0.65;
+}
+.ul-lrow--c {
+  grid-template-columns: 44px minmax(0, 1fr) 36px 50px;
+  gap: 8px;
+  padding: 3px 0 3px 22px;
+}
+.ul-lrow--c + .ul-lrow--c {
+  border-top: 0;
+}
+.ul-lrow--c .ul-lrow__lbl {
+  overflow: hidden;
+  font-size: 11.5px;
+  color: var(--ul-fg-2);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ul-lrow--c .ul-lrow__pct {
+  font-size: 11.5px;
+}
+.ul-lrow--c .ul-lrow__reset {
+  font-size: 11px;
+}
+.ul-lrow--c .ul-bar {
+  height: 5px;
+}

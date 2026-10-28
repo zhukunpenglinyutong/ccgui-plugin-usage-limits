@@ -1,0 +1,54 @@
+# 推送 x.y.z tag 时构建并发布三件套 + checksums.txt（市场索引按 Release 校验）。
+# tag 必须与 manifest.json 的 version 完全一致，且不带 v 前缀。
+name: release
+
+on:
+  push:
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Check manifest version matches the tag
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./dist/manifest.json').version")
+          if [ "$VERSION" != "${GITHUB_REF_NAME}" ]; then
+            echo "::error::manifest version ($VERSION) != tag (${GITHUB_REF_NAME})"
+            exit 1
+          fi
+          echo "version $VERSION"
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum main.js manifest.json styles.css > checksums.txt
+          cat checksums.txt
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            dist/main.js dist/manifest.json dist/styles.css dist/checksums.txt

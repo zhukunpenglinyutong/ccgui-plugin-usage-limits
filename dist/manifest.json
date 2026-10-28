@@ -1,0 +1,41 @@
+{
+  "id": "usage-limits",
+  "name": "用量与限额",
+  "version": "0.1.3",
+  "sdkVersion": ">=0.3.23",
+  "minAppVersion": "1.1.9",
+  "tier": "js",
+  "author": "zhukunpenglinyutong",
+  "license": "MIT",
+  "repo": "zhukunpenglinyutong/ccgui-plugin-usage-limits",
+  "description": "状态栏用量芯片、用量概览与 Claude / Codex 订阅限额。数据由 CC GUI 在本机从各 CLI 日志计算，不上传；界面参考 TokenTracker（MIT）。",
+  "permissions": [
+    "ui:status-bar",
+    "ui:sidebar-entry",
+    "ui:center-tab",
+    "ui:settings-section",
+    "ui:command",
+    "storage",
+    "events",
+    "host:workspace",
+    "usage.read",
+    "limits.read"
+  ],
+  "icon": "docs/icon.png",
+  "screenshots": [
+    "docs/screenshot-1.png",
+    "docs/screenshot-2.png",
+    "docs/screenshot-3.png",
+    "docs/screenshot-4.png"
+  ],
+  "keywords": [
+    "usage",
+    "token",
+    "cost",
+    "limits",
+    "claude",
+    "codex",
+    "用量",
+    "限额"
+  ]
+}

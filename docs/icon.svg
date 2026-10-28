@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="用量与限额">
+  <!--
+    Plugin identity (market list / plugin manager / README). Matches the CC GUI
+    plugin-icon family: a saturated gradient tile with one white glyph.
+    Glyph: three usage bars under a quota line — "how much was used, against
+    what limit". The in-app status mark is a different asset (the CC GUI tile
+    with crescent eyes, src/ui/BrandMark.tsx); this file only dresses the
+    plugin's own storefront.
+    Re-render the PNG with `npm run assets`.
+  -->
+  <defs>
+    <linearGradient id="ul-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb13d"/>
+      <stop offset="1" stop-color="#f2542d"/>
+    </linearGradient>
+    <radialGradient id="ul-shine" cx="32%" cy="8%" r="90%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.24"/>
+      <stop offset="0.6" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ul-edge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.32"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.12"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#ul-bg)"/>
+  <rect width="512" height="512" rx="112" fill="url(#ul-shine)"/>
+  <rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="url(#ul-edge)" stroke-width="2"/>
+  <g fill="#ffffff">
+    <rect x="104" y="132" width="304" height="14" rx="7" fill-opacity="0.55"/>
+    <rect x="112" y="300" width="64" height="100" rx="22"/>
+    <rect x="224" y="232" width="64" height="168" rx="22"/>
+    <rect x="336" y="152" width="64" height="248" rx="22"/>
+  </g>
+</svg>

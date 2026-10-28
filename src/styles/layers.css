@@ -1,0 +1,183 @@
+/* usage-limits · brand mark, layers, chart tooltip, reduced motion */
+/* ---- CC GUI brand mark (app-icon tile + crescent eyes) ------------------ */
+.ul-brand {
+  display: inline-flex;
+  flex: none;
+  border-radius: 21%;
+  background:
+    radial-gradient(130% 90% at 50% -20%, rgb(255 255 255 / 0.16), transparent 62%),
+    linear-gradient(180deg, #3c3c3e 0%, #2a2a2c 24%, #232325 64%, #181819 100%);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.32),
+    inset 0 -1px 0 rgb(0 0 0 / 0.4),
+    0 0 0 0.5px rgb(0 0 0 / 0.45);
+}
+.ul-brand svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.ul-brand__eyes {
+  fill: #fbfbfb;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: ul-brand-blink 5s steps(1) infinite;
+}
+.ul-brand.is-running {
+  animation: ul-brand-bob 0.9s ease-in-out infinite;
+}
+.ul-brand.is-still,
+.ul-brand.is-still .ul-brand__eyes {
+  animation: none;
+}
+@keyframes ul-brand-blink {
+  0%,
+  94%,
+  100% {
+    transform: scaleY(1);
+  }
+  95%,
+  97% {
+    transform: scaleY(0.08);
+  }
+}
+@keyframes ul-brand-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1.2px);
+  }
+}
+
+/* ---- layers + chart tooltip ------------------------------------------- */
+.ul-layer {
+  position: absolute;
+  z-index: 60;
+  top: calc(100% + 6px);
+  width: 360px;
+  border: 1px solid var(--ul-line);
+  border-radius: 14px;
+  background: var(--ul-bg);
+  box-shadow: var(--ul-shadow-pop);
+  animation: ul-pop-in 150ms ease-out;
+}
+.ul-layer__head {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 14px 16px 10px;
+  font-size: 13.5px;
+}
+.ul-layer__head span {
+  font-size: 12px;
+  color: var(--ul-fg-2);
+}
+.ul-layer__head--row {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.ul-layer__p {
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--ul-fg-2);
+}
+.ul-layer__pad {
+  padding: 10px 16px 12px;
+}
+.ul-layer__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--ul-line);
+  font-size: 12.5px;
+}
+.ul-layer__foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--ul-line);
+}
+.ul-layer__foot--split {
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+.ul-layer__btns {
+  display: flex;
+  gap: 6px;
+}
+.ul-layer__alert {
+  margin: 0 12px 8px;
+}
+.ul-layer__loading {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+}
+@keyframes ul-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+.ul-tip {
+  position: fixed;
+  z-index: 1000;
+  max-width: 300px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: var(--color-text-primary, #0a0a0a);
+  color: var(--color-background-primary-default, #ffffff);
+  font-family: var(--font-sans, ui-sans-serif, system-ui, sans-serif);
+  font-size: 12px;
+  line-height: 1.5;
+  pointer-events: none;
+  box-shadow: var(--ul-shadow-pop);
+}
+.ul-tip small {
+  opacity: 0.7;
+}
+.ul-tip__list {
+  margin: 4px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+.ul-tip__list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ul-tip__list i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+.ul-tip__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ul-tip__list b {
+  margin-left: auto;
+  padding-left: 12px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ul-root *,
+  .ul-root *::before,
+  .ul-root *::after,
+  .ul-tip {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,93 @@
+/* usage-limits · detail table */
+/* ---- detail table -------------------------------------------------------- */
+.ul-dtable .ul-card__head {
+  padding-bottom: 4px;
+}
+.ul-dt__alert {
+  margin: 8px 16px 0;
+}
+.ul-dt-wrap {
+  overflow-x: auto;
+  padding: 4px 6px 8px;
+}
+.ul-dt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.ul-dt th {
+  padding: 0;
+  border-bottom: 1px solid var(--ul-line);
+  text-align: left;
+}
+.ul-dt th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ul-fg-2);
+  white-space: nowrap;
+}
+.ul-dt th.is-num button {
+  justify-content: flex-end;
+}
+.ul-dt th button:hover,
+.ul-dt th[aria-sort="ascending"] button,
+.ul-dt th[aria-sort="descending"] button {
+  color: var(--ul-fg);
+}
+.ul-sortc {
+  display: inline-block;
+  width: 9px;
+}
+.ul-dt td {
+  padding: 8px 10px;
+  border-bottom: 1px solid color-mix(in srgb, var(--ul-line) 60%, transparent);
+  white-space: nowrap;
+}
+.ul-dt td.is-num {
+  text-align: right;
+}
+.ul-dt td b {
+  font-weight: 500;
+}
+.ul-dt__model,
+.ul-dt__name {
+  display: inline-block;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.ul-dt tr.is-click {
+  cursor: pointer;
+}
+.ul-dt tr.is-click:hover,
+.ul-dt tr.is-click:focus-visible {
+  background: var(--ul-hover);
+  outline: none;
+}
+.ul-dt__empty {
+  padding: 28px;
+  text-align: center;
+  color: var(--ul-fg-3);
+}
+.ul-minibar {
+  display: inline-block;
+  width: 60px;
+  height: 5px;
+  margin-right: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--ul-track);
+  vertical-align: middle;
+}
+.ul-minibar i {
+  display: block;
+  height: 100%;
+  background: var(--ul-accent);
+}

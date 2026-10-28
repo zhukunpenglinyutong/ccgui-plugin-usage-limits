@@ -1,0 +1,14 @@
+/* Bundled by esbuild into the plugin's styles.css (installed in the host's
+ * @layer ccgui-plugins). plugin-ui first, plugin styles after so they win. */
+@import "@ccgui/plugin-ui/styles.css";
+@import "./base.css";
+@import "./controls.css";
+@import "./layers.css";
+@import "./status.css";
+@import "./bars.css";
+@import "./page.css";
+@import "./overview.css";
+@import "./table.css";
+@import "./overview-side.css";
+@import "./overview-layers.css";
+@import "./limits-settings.css";

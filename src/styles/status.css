@@ -1,0 +1,415 @@
+/* ---- status-bar chip ---------------------------------------------------- */
+.ul-chip-wrap {
+  display: inline-flex;
+  min-width: 0;
+  font-size: 12px;
+}
+.ul-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  height: 22px;
+  padding: 0 7px 0 5px;
+  border-radius: 6px;
+  color: var(--ul-fg-2);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 120ms ease;
+}
+.ul-chip:hover {
+  background: var(--ul-hover);
+  color: var(--ul-fg);
+}
+.ul-chip.is-open {
+  background: var(--ul-bg-3);
+  color: var(--ul-fg);
+}
+.ul-chip b {
+  font-weight: 600;
+  color: var(--ul-fg);
+}
+.ul-chip b.is-warn {
+  color: var(--ul-warn);
+}
+.ul-chip b.is-danger {
+  color: var(--ul-danger);
+}
+.ul-chip__lbl,
+.ul-chip__unit,
+.ul-chip__muted {
+  color: var(--ul-fg-3);
+}
+.ul-chip__unit {
+  font-weight: 400;
+}
+.ul-chip__sep {
+  flex: none;
+  width: 1px;
+  height: 11px;
+  margin: 0 1px;
+  border-radius: 1px;
+  background: color-mix(in srgb, currentColor 26%, transparent);
+}
+/* One tag per provider: brand mark + tightest window + percentage. Neutral by
+ * default; only the colour changes once a threshold is crossed. */
+.ul-chip__lim {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 17px;
+  margin-left: 1px;
+  padding: 0 5px 0 2px;
+  border-radius: 5px;
+  /* One step above the chip's own hover tint, so neutral tags stay visible. */
+  background: color-mix(in srgb, var(--ul-fg) 9%, transparent);
+  color: var(--ul-fg-2);
+  font: 600 11px/1 var(--ul-mono);
+}
+.ul-chip__lim b {
+  font-weight: 700;
+  color: var(--ul-fg);
+}
+.ul-chip__lim-win {
+  letter-spacing: 0.01em;
+}
+.ul-chip__lim-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.ul-chip__lim-pair + .ul-chip__lim-pair {
+  margin-left: 3px;
+}
+.ul-chip__lim.is-warn {
+  background: var(--ul-warn-bg);
+  color: var(--ul-warn);
+}
+.ul-chip__lim.is-warn b {
+  color: var(--ul-warn);
+}
+.ul-chip__lim.is-danger {
+  background: var(--ul-danger-bg);
+  color: var(--ul-danger);
+}
+.ul-chip__lim.is-danger b {
+  color: var(--ul-danger);
+}
+
+/* ---- popover (fixed; status bar may clip overflow) --------------------- */
+.ul-pop {
+  position: fixed;
+  z-index: 900;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--ul-line);
+  border-radius: 14px;
+  background: var(--ul-bg);
+  box-shadow: var(--ul-shadow-pop);
+  font-size: 13px;
+  text-align: left;
+  white-space: normal;
+  cursor: auto;
+  user-select: text;
+  animation: ul-pop-in 150ms ease-out;
+}
+.ul-pop:focus {
+  outline: none;
+}
+.ul-pop__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 10px 10px 14px;
+}
+.ul-pop__glyph {
+  color: var(--ul-accent);
+}
+/* Bubble and the "updated" time share one row — the header stays two lines shorter. */
+.ul-pop__say {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.ul-say {
+  align-self: center;
+  padding: 4px 10px;
+  border-radius: 10px 10px 10px 3px;
+  background: var(--ul-bg-2);
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ul-fg);
+}
+/* Clickable bubble: the three display modes share one shape, so no layout shift. */
+.ul-say--cycle {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ul-fg);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.ul-say--cycle:hover {
+  background: var(--ul-bg-3);
+}
+.ul-say--cycle:focus-visible {
+  outline: 2px solid var(--ul-accent);
+  outline-offset: 1px;
+}
+.ul-pop__ago {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--ul-fg-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ul-pop__alert {
+  margin: 0 16px 10px;
+}
+.ul-pop__state {
+  display: flex;
+  gap: 10px;
+  margin: 0 16px 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--ul-bg-2);
+  font-size: 12.5px;
+}
+.ul-pop__state p {
+  margin-top: 2px;
+  color: var(--ul-fg-2);
+}
+.ul-pop__state .ul-spin {
+  margin-top: 2px;
+}
+.ul-pop__skel {
+  display: grid;
+  gap: 8px;
+  margin: 0 16px;
+}
+.ul-skel--today {
+  height: 86px;
+}
+.ul-skel--cards {
+  height: 70px;
+}
+
+.ul-ptoday {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  width: calc(100% - 32px);
+  margin: 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--ul-line);
+  border-radius: 12px;
+  text-align: left;
+}
+.ul-ptoday:hover,
+.ul-pcard:hover {
+  border-color: var(--ul-line-btn-hover);
+  background: var(--ul-hover);
+}
+.ul-ptoday__l {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.ul-ptoday__lbl {
+  font-size: 11.5px;
+  color: var(--ul-fg-2);
+}
+.ul-ptoday__num {
+  font-size: 26px;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+/* Cost + delta + "vs yesterday" stay on one line; the spark yields the width. */
+.ul-ptoday__meta {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  align-items: baseline;
+  overflow: hidden;
+  font-size: 12.5px;
+  color: var(--ul-fg-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.ul-ptoday__meta > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ul-spark {
+  display: flex;
+  flex: none;
+  align-items: flex-end;
+  align-self: flex-end;
+  gap: 2px;
+  width: 92px;
+  height: 46px;
+}
+.ul-spark i {
+  flex: 1;
+  min-height: 2px;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-chart-6, #51a2ff);
+}
+.ul-spark i.is-future {
+  background: var(--ul-bg-3);
+}
+.ul-pcards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 8px 16px 0;
+}
+.ul-pcard {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid var(--ul-line);
+  border-radius: 11px;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+.ul-pcard__lbl {
+  font-size: 11px;
+  color: var(--ul-fg-2);
+}
+.ul-pcard b {
+  font-size: 16px;
+  font-weight: 650;
+}
+.ul-pcard__cost {
+  font-size: 12px;
+  color: var(--ul-fg-2);
+}
+.ul-pcard__sub {
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--ul-fg-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Picking a card opens the token breakdown right here (no navigation). */
+.ul-ptoday.is-on,
+.ul-pcard.is-on {
+  border-color: var(--ul-accent);
+  background: color-mix(in srgb, var(--ul-accent) 8%, transparent);
+}
+.ul-pdetail {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 5px;
+  margin: 8px 16px 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--ul-bg-2);
+  font-variant-numeric: tabular-nums;
+  animation: ul-pop-in 120ms ease-out;
+}
+.ul-pdetail span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.ul-pdetail i {
+  font-size: 10.5px;
+  font-style: normal;
+  color: var(--ul-fg-3);
+}
+.ul-pdetail b {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ul-plim {
+  margin: 14px 16px 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--ul-line);
+}
+.ul-plim__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ul-fg-2);
+}
+.ul-pprov + .ul-pprov {
+  margin-top: 10px;
+}
+.ul-pprov__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 12.5px;
+}
+.ul-pprov__ago {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--ul-fg-3);
+}
+.ul-pprov__state {
+  padding: 2px 0 2px 22px;
+  font-size: 12px;
+  color: var(--ul-fg-2);
+}
+.ul-pprov__state.is-error {
+  color: var(--ul-danger);
+}
+.ul-pprov__state code {
+  padding: 0 4px;
+  border-radius: 4px;
+  background: var(--ul-bg-2);
+}
+.ul-plogo {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--ul-c, var(--ul-accent)) 16%, transparent);
+  color: var(--ul-c, var(--ul-accent));
+}
+.ul-plogo svg {
+  display: block;
+}
+.ul-pop__foot {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 8px 10px 10px;
+  border-top: 1px solid var(--ul-line);
+  background: var(--ul-bg);
+}

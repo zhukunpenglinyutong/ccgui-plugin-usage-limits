@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>usage-limits · preview host</title>
+<!--
+  Preview harness only (not shipped). Loads the BUILT ../main.js with a fake
+  ctx inside a mock CC GUI frame. Host tokens below mirror
+  desktop-cc-gui/src/styles/theme.css (light + .dark) so light/dark rendering
+  can be checked. Serve via `node preview/serve.mjs` (ES modules need http).
+-->
+<link rel="stylesheet" href="../styles.css" />
+<style>
+:root {
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --radius-2lg: 10px;
+  --color-accent-400: #3392ff; --color-accent-500: #2b7fff; --color-accent-600: #155dfc;
+  --color-text-primary: #0a0a0a; --color-text-secondary: #737373; --color-text-tertiary: #a1a1a1;
+  --color-text-disabled: #d4d4d4; --color-text-placeholder: #a1a1a1; --color-text-white: #ffffff;
+  --color-text-error-primary: #fb2c36; --color-text-warning-primary: #f54900;
+  --color-notification-success-foreground: #5ea500;
+  --color-background-full: #ffffff; --color-background-primary-default: #ffffff;
+  --color-background-secondary-default: #f7f7f7; --color-background-tertiary-default: #ebebeb;
+  --color-background-tertiary-hover: #d4d4d4;
+  --color-border-button-default: #ebebeb; --color-border-button-hover: #d4d4d4;
+  --color-separator-border: #ebebeb; --color-border-focus-ring: #2b7fff; --color-border-error-default: #fb2c36;
+  --color-chart-track: #ebebeb; --color-chart-neutral: #d4d4d4;
+  --color-chart-1: #00d5be; --color-chart-2: #9ae600; --color-chart-3: #fb64b6; --color-chart-4: #00bcff;
+  --color-chart-5: #c27aff; --color-chart-6: #3392ff; --color-chart-7: #00d492; --color-chart-8: #fdc700;
+  --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.05);
+  --shadow-dropdown: 0 1px 1px 0 rgb(0 0 0 / 0.04), 0 4px 4px 0 rgb(0 0 0 / 0.02), 0 12px 32px -8px rgb(0 0 0 / 0.16);
+  --gradient-button-primary-default: linear-gradient(180deg, #2b7fff 0%, #155dfc 100%);
+  --gradient-button-primary-hover: linear-gradient(180deg, #3392ff 0%, #2b7fff 100%);
+  --gradient-button-primary-active: linear-gradient(180deg, #155dfc 0%, #1447e6 100%);
+  --gradient-button-primary-disabled: linear-gradient(180deg, #ebebeb 0%, #d4d4d4 100%);
+  --color-button-primary-disabled-foreground: #a1a1a1;
+  --color-bubble-user: #2b7fff;
+}
+.dark {
+  --color-text-primary: #ebebeb; --color-text-secondary: #d4d4d4; --color-text-tertiary: #a1a1a1;
+  --color-text-disabled: #404040; --color-text-placeholder: #737373;
+  --color-text-error-primary: #ffa2a2; --color-text-warning-primary: #ffb86a;
+  --color-notification-success-foreground: #bbf451;
+  --color-background-full: #0d0d0d; --color-background-primary-default: #171717;
+  --color-background-secondary-default: #111111; --color-background-tertiary-default: #1c1c1c;
+  --color-background-tertiary-hover: #404040;
+  --color-border-button-default: #404040; --color-border-button-hover: #737373;
+  --color-separator-border: #262626;
+  --color-chart-track: #262626; --color-chart-neutral: #262626;
+  --shadow-card: 0 1px 1px 0 rgb(0 0 0 / 0.14);
+  --shadow-dropdown: 0 1px 1px 0 rgb(0 0 0 / 0.14), 0 4px 4px 0 rgb(0 0 0 / 0.10), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+  --gradient-button-primary-disabled: linear-gradient(180deg, #404040 0%, #262626 100%);
+  --color-bubble-user: #155dfc;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--color-background-full); color: var(--color-text-primary); font: 13px/1.45 var(--font-sans); }
+.h-app { display: flex; flex-direction: column; height: 100vh; }
+.h-body { flex: 1; display: grid; grid-template-columns: 232px minmax(0, 1fr); min-height: 0; }
+.h-side { display: flex; flex-direction: column; gap: 2px; padding: 10px 8px; border-right: 1px solid var(--color-separator-border); background: var(--color-background-secondary-default); }
+.h-side__item { display: flex; align-items: center; gap: 8px; height: 32px; padding: 0 8px; border: 0; border-radius: 10px; background: none; color: var(--color-text-primary); font: inherit; text-align: left; cursor: pointer; }
+.h-side__item.is-active, .h-side__item:hover { background: var(--color-background-tertiary-default); }
+.h-ic { width: 16px; height: 16px; color: var(--color-text-secondary); }
+.h-badge { margin-left: auto; padding: 0 6px; border-radius: 999px; background: var(--color-background-tertiary-default); color: var(--color-text-secondary); font: 600 10.5px/16px var(--font-mono); }
+.h-side__label { margin: 12px 8px 4px; font-size: 11px; color: var(--color-text-tertiary); }
+.h-side__ws { padding: 4px 8px; font-weight: 500; }
+.h-side__sess { padding: 4px 8px 4px 24px; color: var(--color-text-secondary); }
+.h-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.h-tabs { display: flex; gap: 2px; align-items: flex-end; height: 38px; padding: 0 8px; border-bottom: 1px solid var(--color-separator-border); }
+.h-tab { height: 31px; padding: 0 12px; border: 0; border-radius: 8px 8px 0 0; background: none; color: var(--color-text-secondary); font: inherit; cursor: pointer; }
+.h-tab.is-active { background: var(--color-background-secondary-default); color: var(--color-text-primary); box-shadow: inset 0 -2px 0 var(--color-accent-500); }
+.h-center { position: relative; flex: 1; display: flex; min-height: 0; }
+.h-surface { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; background: var(--color-background-primary-default); }
+.h-surface.is-hidden { position: absolute; inset: 0; visibility: hidden; }
+.h-chat { padding: 32px 56px; }
+.h-bubble { margin-left: auto; width: fit-content; padding: 10px 14px; border-radius: 14px; background: var(--color-background-tertiary-default); }
+.h-settings { flex-direction: row; }
+.h-settings__nav { width: 200px; padding: 18px 10px; border-right: 1px solid var(--color-separator-border); background: var(--color-background-secondary-default); }
+.h-settings__nav p { margin: 0 10px 6px; font-size: 11px; color: var(--color-text-tertiary); }
+.h-settings__nav span { display: block; padding: 6px 10px; border-radius: 8px; }
+.h-settings__nav span.is-active { background: var(--color-background-tertiary-default); font-weight: 500; }
+.h-settings__body { flex: 1; overflow: auto; padding: 22px 30px 40px; }
+.h-status { display: flex; align-items: center; justify-content: flex-end; height: 28px; padding: 0 12px; border-top: 1px solid var(--color-separator-border); background: var(--color-background-primary-default); color: var(--color-text-tertiary); font-size: 12px; font-weight: 500; overflow: hidden; }
+.h-status__start { display: flex; align-items: center; gap: 12px; margin-right: auto; min-width: 0; }
+.h-status__end { display: flex; gap: 8px; }
+.h-crash { margin: 20px; padding: 12px; color: var(--color-text-error-primary); }
+html.reduced-motion * { animation: none !important; transition: none !important; }
+</style>
+<script src="../node_modules/react/umd/react.development.js"></script>
+<script src="../node_modules/react-dom/umd/react-dom.development.js"></script>
+</head>
+<body>
+<div id="root"></div>
+<script type="module" src="./host.js"></script>
+</body>
+</html>

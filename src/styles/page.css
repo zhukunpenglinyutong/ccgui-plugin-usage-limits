@@ -1,0 +1,263 @@
+/* ---- center tab shell --------------------------------------------------- */
+.ul-page {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  background: var(--ul-bg);
+  container-type: inline-size;
+  container-name: ul-page;
+}
+.ul-page__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.ul-page__in {
+  padding: 18px 26px 32px;
+}
+.ul-phead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  margin-bottom: 16px;
+}
+.ul-phead__l {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.ul-phead h2 {
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.ul-phead__r {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ul-phead__r > .ul-layer {
+  right: 0;
+}
+.ul-itabs.ul-seg {
+  background: transparent;
+  padding: 0;
+}
+.ul-itabs .ul-seg__item {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+.ul-itabs .ul-seg__item:hover {
+  background: var(--ul-hover);
+}
+.ul-itabs .ul-seg__item.is-on {
+  background: var(--ul-bg-3);
+  box-shadow: none;
+}
+
+.ul-card {
+  border: 1px solid var(--ul-line);
+  border-radius: 14px;
+  background: var(--ul-bg);
+}
+.ul-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 12px 16px 0;
+}
+.ul-card__head h3 {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+.ul-card__meta {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--ul-fg-3);
+}
+.ul-card__empty {
+  padding: 12px 16px 4px;
+  font-size: 12.5px;
+  color: var(--ul-fg-3);
+}
+.ul-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 44px 24px;
+  text-align: center;
+}
+.ul-empty h3 {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.ul-empty p {
+  max-width: 46ch;
+  font-size: 13px;
+  color: var(--ul-fg-2);
+}
+.ul-empty .ul-alert {
+  max-width: 520px;
+  text-align: left;
+}
+.ul-empty__dirs {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ul-fg-2);
+  text-align: left;
+}
+.ul-empty__dirs summary {
+  cursor: pointer;
+  text-align: center;
+}
+.ul-empty__dirs ul {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 4px 14px;
+  margin-top: 10px;
+}
+.ul-empty__dirs li {
+  display: contents;
+}
+.ul-empty__dirs code {
+  color: var(--ul-fg-3);
+}
+.ul-path {
+  display: block;
+  max-width: 320px;
+  overflow: hidden;
+  font-size: 11px;
+  color: var(--ul-fg-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- project drawer (inside the tab, never full-screen) ---------------- */
+.ul-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 70;
+  background: color-mix(in srgb, var(--ul-fg) 14%, transparent);
+  animation: ul-fade 150ms ease-out;
+}
+@keyframes ul-fade {
+  from {
+    opacity: 0;
+  }
+}
+.ul-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 71;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(380px, 92%);
+  overflow: auto;
+  padding: 18px 20px;
+  border-left: 1px solid var(--ul-line);
+  background: var(--ul-bg);
+  box-shadow: var(--ul-shadow-pop);
+  animation: ul-slide 200ms ease-out;
+}
+.ul-drawer > * {
+  flex-shrink: 0;
+}
+@keyframes ul-slide {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+.ul-drawer__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.ul-drawer__head > div {
+  min-width: 0;
+}
+.ul-drawer__head h3 {
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  font-weight: 650;
+}
+.ul-drawer .ul-kicker {
+  margin-top: 10px;
+}
+.ul-drawer__nums {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.ul-drawer__nums div {
+  display: flex;
+  flex-direction: column;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: var(--ul-bg-2);
+  font-variant-numeric: tabular-nums;
+}
+.ul-drawer__nums span {
+  font-size: 11px;
+  color: var(--ul-fg-2);
+}
+.ul-drawer__nums b {
+  font-size: 16px;
+  font-weight: 650;
+}
+.ul-kv li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--ul-line);
+  font-size: 12.5px;
+}
+.ul-kv li .ul-edot {
+  margin-right: -2px;
+}
+.ul-kv__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ul-kv li b {
+  margin-left: auto;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.ul-mini {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  margin-top: 4px;
+}
+.ul-mini i {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  background: var(--color-chart-6, #51a2ff);
+}
+
+@container ul-page (max-width: 760px) {
+  .ul-page__in {
+    padding: 14px 14px 24px;
+  }
+}
